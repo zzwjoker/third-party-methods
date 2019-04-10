@@ -7,30 +7,30 @@ function fbInit (appId, version) {
         cookie: true,
         xfbml: true,
         version: version
-      });
+      })
       // FB.AppEvents.logPageView();
       FB.getLoginStatus(function (response) {
         // console.log(response);
-        if (response.status === "connected") {
-          resolve(response.authResponse);
+        if (response.status === 'connected') {
+          resolve(response.authResponse)
         } else {
-          reject();
+          reject(response)
         }
-      }, true);
+      }, true)
     };
 
     (function (d, s, id) {
-      var js,
-        fjs = d.getElementsByTagName(s)[0];
+      var js
+      var fjs = d.getElementsByTagName(s)[0]
       if (d.getElementById(id)) {
-        return;
+        return
       }
-      js = d.createElement(s);
-      js.id = id;
-      js.src = "https://connect.facebook.net/en_US/sdk.js";
-      fjs.parentNode.insertBefore(js, fjs);
-    })(document, "script", "facebook-jssdk");
-  });
+      js = d.createElement(s)
+      js.id = id
+      js.src = 'https://connect.facebook.net/en_US/sdk.js'
+      fjs.parentNode.insertBefore(js, fjs)
+    })(document, 'script', 'facebook-jssdk')
+  })
 }
 
 // fb登录
@@ -39,25 +39,82 @@ function fbLogin () {
     FB.login(
       function (response) {
         // console.log(response);
-        if (response.status === "connected") {
-          resolve(response.authResponse);
+        if (response.status === 'connected') {
+          resolve(response.authResponse)
         } else {
-          reject();
+          reject(response)
         }
       },
       {
-        scope: "email",
+        scope: 'email',
         return_scopes: true
       }
-    );
-  });
+    )
+  })
 }
 
 // fb登出
 function fbLogout () {
-  FB.logout(function (response) {
-    console.log(response);
-  });
+  return new Promise((resolve, reject) => {
+    FB.getLoginStatus(function (response) {
+      if (response.status === 'connected') {
+        FB.logout(function (response) {
+          resolve(response)
+        })
+      } else {
+        reject(response)
+      }
+    })
+  })
+}
+
+// google初始化
+let googleUser = {}
+let auth2
+function googleInit (clientId) {
+  (function (d, s, id) {
+    var js
+    var fjs = d.getElementsByTagName(s)[0]
+    if (d.getElementById(id)) {
+      return
+    }
+    js = d.createElement(s)
+    js.id = id
+    js.src = 'https://apis.google.com/js/api:client.js'
+    fjs.parentNode.insertBefore(js, fjs)
+    js.onload = function () {
+      startApp(clientId)
+    }
+  })(document, 'script', 'google-jssdk')
+}
+
+function startApp (clientId) {
+  gapi.load('auth2', function () {
+    // Retrieve the singleton for the GoogleAuth library and set up the client.
+    auth2 = gapi.auth2.init({
+      client_id: clientId,
+      cookiepolicy: 'single_host_origin'
+      // Request scopes in addition to 'profile' and 'email'
+      // scope: 'additional_scope'
+    })
+    // attachSignin(document.getElementById(element));
+  })
+}
+
+// google登录
+function googleLogin (element) {
+  return new Promise((resolve, reject) => {
+    auth2.attachClickHandler(
+      document.getElementById(element),
+      {},
+      function (googleUser) {
+        resolve(googleUser.getAuthResponse())
+      },
+      function (error) {
+        reject(JSON.stringify(error, undefined, 2))
+      }
+    )
+  })
 }
 
 // fb分享
@@ -65,66 +122,79 @@ function fbShare (url) {
   return new Promise((resolve, reject) => {
     FB.ui(
       {
-        method: "share",
-        href: url
+        method: 'share_open_graph',
+        action_type: 'og.likes',
+        action_properties: JSON.stringify({
+          object: url
+        })
       },
       function (response) {
-        if (typeof response === "undefined") {
-          reject();
+        console.log(response)
+        if (!response || response.error_message) {
+          reject(response)
         }
-        resolve(response);
+        resolve(response)
       }
-    );
-  });
-}
-
-// google初始化
-let googleUser = {};
-let auth2;
-function googleInit (client_id) {
-  (function (d, s, id) {
-    var js,
-      fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id)) {
-      return;
-    }
-    js = d.createElement(s);
-    js.id = id;
-    js.src = "https://apis.google.com/js/api:client.js";
-    fjs.parentNode.insertBefore(js, fjs);
-    js.onload = function () {
-      startApp(client_id)
-    };
-  })(document, "script", "google-jssdk");
-}
-
-function startApp (client_id) {
-  gapi.load("auth2", function () {
-    // Retrieve the singleton for the GoogleAuth library and set up the client.
-    auth2 = gapi.auth2.init({
-      client_id: client_id,
-      cookiepolicy: "single_host_origin"
-      // Request scopes in addition to 'profile' and 'email'
-      //scope: 'additional_scope'
-    });
-    // attachSignin(document.getElementById(element));
-  });
-}
-
-//google登录
-function googleLogin (element) {
-  return new Promise((resolve, reject) => {
-    auth2.attachClickHandler(
-      element,
-      {},
-      function (googleUser) {
-        resolve(googleUser.getAuthResponse())
-      },
-      function (error) {
-        reject(JSON.stringify(error, undefined, 2));
-      }
-    );
+    )
   })
 }
 
-export { fbInit, fbLogin, fbLogout, fbShare, googleInit, googleLogin };
+// fb分享好友
+function fbShareFriend (url) {
+  console.log(url)
+  return new Promise((resolve, reject) => {
+    FB.ui(
+      {
+        method: 'send',
+        link: url
+      },
+      function (response) {
+        console.log(response)
+        if (!response || response.error_message) {
+          reject(response)
+        }
+        resolve(response)
+      }
+    )
+  })
+}
+
+// naver登录
+function naverInit (clientId, callbackUrl) {
+  return new Promise((resolve, reject) => {
+    (function (d, s, id) {
+      var js
+      var fjs = d.getElementsByTagName(s)[0]
+      if (d.getElementById(id)) {
+        return
+      }
+      js = d.createElement(s)
+      js.id = id
+      js.src = 'https://static.nid.naver.com/js/naveridlogin_js_sdk_2.0.0.js'
+      fjs.parentNode.insertBefore(js, fjs)
+      js.onload = function () {
+        var naverLogin = new naver.LoginWithNaverId(
+          {
+            clientId: clientId,
+            callbackUrl: callbackUrl,
+            isPopup: false,
+            callbackHandle: true,
+            loginButton: { color: "green", type: 3, height: 60 }
+          }
+        );
+        naverLogin.init();
+        naverLogin.getLoginStatus(function (status) {
+          if (status) {
+            // 已登录
+            resolve(naverLogin.accessToken.accessToken)
+          } else {
+            // 未登录
+            reject('Not Logged In')
+          }
+        })
+      }
+    })(document, 'script', 'naver-jssdk')
+  })
+}
+
+export { fbInit, fbLogin, fbLogout, fbShare, googleInit, googleLogin, fbShareFriend, naverInit }
