@@ -98,9 +98,7 @@ googleInit('1188221111113909')
 ```javascript
 import { googleLogin } from '.../sdk.js'
 
-// googleLogin('google-button-id')
-
-googleLogin('customBtn')
+googleLogin()
   .then(res => {
     // 登录成功
     // token: res.id_token

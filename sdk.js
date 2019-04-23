@@ -97,23 +97,17 @@ function startApp (clientId) {
       // Request scopes in addition to 'profile' and 'email'
       // scope: 'additional_scope'
     })
-    // attachSignin(document.getElementById(element));
   })
 }
 
 // google登录
-function googleLogin (element) {
+function googleLogin () {
   return new Promise((resolve, reject) => {
-    auth2.attachClickHandler(
-      document.getElementById(element),
-      {},
-      function (googleUser) {
-        resolve(googleUser.getAuthResponse())
-      },
-      function (error) {
-        reject(JSON.stringify(error, undefined, 2))
-      }
-    )
+    auth2.signIn().then(res => {
+      resolve(res.getAuthResponse())
+    }).catch(err => {
+      reject(JSON.stringify(err, undefined, 2))
+    })
   })
 }
 
