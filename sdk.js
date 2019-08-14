@@ -116,11 +116,8 @@ function fbShare (url) {
   return new Promise((resolve, reject) => {
     FB.ui(
       {
-        method: 'share_open_graph',
-        action_type: 'og.likes',
-        action_properties: JSON.stringify({
-          object: url
-        })
+        method: 'share',
+        href: url
       },
       function (response) {
         console.log(response)
@@ -140,7 +137,8 @@ function fbShareFriend (url) {
     FB.ui(
       {
         method: 'send',
-        link: url
+        link: url,
+        display: 'popup'
       },
       function (response) {
         console.log(response)
