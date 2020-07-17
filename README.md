@@ -1,4 +1,4 @@
-# Third party methods
+# google/facebook jssdk常用方法
 
 ## fb js-sdk初始化(返回当前授权状态)
 
